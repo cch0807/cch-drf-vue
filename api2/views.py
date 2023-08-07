@@ -1,4 +1,7 @@
+from collections import OrderedDict
 from django.contrib.auth.models import User
+
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import (
@@ -14,6 +17,7 @@ from api2.serializers import (
     CommentSerializer,
     PostListSerializer,
     PostRetrieveSerializer,
+    PostSerializerDetail,
     UserSerializer,
 )
 from blog.models import Category, Comment, Post, Tag
@@ -34,14 +38,14 @@ from blog.models import Category, Comment, Post, Tag
 #     serializer_class = CommentSerializer
 
 
-class PostListAPIView(ListAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostListSerializer
+# class PostListAPIView(ListAPIView):
+#     queryset = Post.objects.all()
+#     serializer_class = PostListSerializer
 
 
-class PostRetrieveAPIView(RetrieveAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostRetrieveSerializer
+# class PostRetrieveAPIView(RetrieveAPIView):
+#     queryset = Post.objects.all()
+#     serializer_class = PostRetrieveSerializer
 
 
 class CommentCreateAPIView(CreateAPIView):
@@ -94,3 +98,62 @@ class CateTagAPIView(APIView):
 
         serializer = CateTagSerializer(instance=data)
         return Response(serializer.data)
+
+
+class PostPageNumberPagination(PageNumberPagination):
+    page_size = 3
+
+    def get_paginated_response(self, data):
+        return Response(
+            OrderedDict(
+                [
+                    ("postList", data),
+                    ("pageCnt", self.page.paginator.num_pages),
+                    ("curPage", self.page.number),
+                ]
+            )
+        )
+
+
+class PostListAPIView(ListAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostListSerializer
+    pagination_class = PostPageNumberPagination
+
+    def get_serializer_context(self):
+        return {"request": None, "format": self.format_kwarg, "view": self}
+
+
+def get_prev_next(instance):
+    try:
+        prev = instance.get_previous_by_update_dt()
+    except instance.DoesNotExist:
+        prev = None
+
+    try:
+        next_ = instance.get_next_by_update_dt()
+    except instance.DoesNotExist:
+        next_ = None
+
+    return prev, next_
+
+
+class PostRetrieveAPIView(RetrieveAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializerDetail
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        prevInstance, nextInstance = get_prev_next(instance)
+        commentList = instance.comment_set.all()
+        data = {
+            "post": instance,
+            "prevPost": prevInstance,
+            "nextPost": nextInstance,
+            "commentList": commentList,
+        }
+        serializer = self.get_serializer(instance=data)
+        return Response(serializer.data)
+
+    def get_serializer_context(self):
+        return {"request": None, "format": self.format_kwarg, "view": self}
