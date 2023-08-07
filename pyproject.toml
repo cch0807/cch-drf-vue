@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "cch-blog"
+version = "0.1.0"
+description = "This blog was created using django rest framework and Vue."
+authors = ["cch0807 <ckdgus11021@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "cch_blog"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+django = "^4.2.4"
+pillow = "^10.0.0"
+black = "^23.7.0"
+python-dotenv = "^1.0.0"
+djangorestframework = "^3.14.0"
+markdown = "^3.4.4"
+django-filter = "^23.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
