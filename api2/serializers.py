@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from blog.models import Comment, Post
+from blog.models import Category, Comment, Post, Tag
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -10,11 +10,24 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         fields = ["url", "username", "email", "is_staff"]
 
 
-class PostSerializer(serializers.ModelSerializer):
+class PostListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         # fields = "__all__"
         fields = ["id", "title", "image", "like", "category"]
+
+
+class PostRetrieveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        # fields = "__all__"
+        exclude = ["create_dt"]
+
+
+# class PostLikeSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Post
+#         fields = ["like"]
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -22,3 +35,25 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         # fields = "__all__"
         fields = "__all__"
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ["name"]
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ["name"]
+
+
+# class CateTagSerializer(serializers.Serializer):
+#     cateList = CategorySerializer(many=True)
+#     tagList = TagSerializer(many=True)
+
+
+class CateTagSerializer(serializers.Serializer):
+    cateList = serializers.ListField(child=serializers.CharField())
+    tagList = serializers.ListField(child=serializers.CharField())
