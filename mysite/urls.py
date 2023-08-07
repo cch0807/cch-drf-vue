@@ -25,7 +25,6 @@ from mysite.views import HomeView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # shkim
     path("", HomeView.as_view(), name="home"),
     path("blog/", include("blog.urls")),
     path("api/", include("api.urls")),
